@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>授業用擬似AIデモ</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    h1 { text-align: center; }
+    textarea { width: 100%; height: 60px; margin-bottom: 10px; }
+    button { padding: 8px 16px; margin: 5px 0; }
+    .opinion-list, .summary, .clusters { margin-top: 20px; }
+    .cluster { padding: 5px; margin: 5px 0; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>授業用擬似AIデモ</h1>
+
+
+  <textarea id="opinionInput" placeholder="意見を入力してください"></textarea><br>
+  <button onclick="addOpinion()">意見を追加</button>
+  <button onclick="generateSummary()">擬似AI要約</button>
+  <button onclick="clusterOpinions()">クラスタリング</button>
+
+
+  <div class="opinion-list">
+    <h2>入力された意見</h2>
+    <ul id="opinionList"></ul>
+  </div>
+
+
+  <div class="summary">
+    <h2>擬似AI要約</h2>
+    <p id="summaryText"></p>
+  </div>
+
+
+  <div class="clusters">
+    <h2>クラスタリング結果</h2>
+    <div id="clusterContainer"></div>
+  </div>
+
+
+  <script>
+    let opinions = [];
+
+
+    function addOpinion() {
+      const input = document.getElementById("opinionInput").value.trim();
+      if(input === "") return alert("意見を入力してください");
+      opinions.push(input);
+      renderOpinions();
+      document.getElementById("opinionInput").value = "";
+    }
+
+
+    function renderOpinions() {
+      const ul = document.getElementById("opinionList");
+      ul.innerHTML = "";
+      opinions.forEach((op, idx) => {
+        const li = document.createElement("li");
+        li.textContent = op;
+        ul.appendChild(li);
+      });
+    }
+
+
+    function generateSummary() {
+      if(opinions.length === 0) return alert("まず意見を追加してください");
+      // 擬似要約（ランダムに重要ワードを抜き出す簡易処理）
+      const words = opinions.join(" ").split(/[  ,.、。]/);
+      const freq = {};
+      words.forEach(w => { if(w.length>1){ freq[w] = (freq[w]||0)+1; }});
+      const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]);
+      const topWords = sorted.slice(0,5).map(e=>e[0]);
+      document.getElementById("summaryText").textContent = "主な論点: " + topWords.join(", ");
+    }
+
+
+    function clusterOpinions() {
+      if(opinions.length === 0) return alert("まず意見を追加してください");
+      const clusters = [];
+      opinions.forEach(op => {
+        let added = false;
+        for(let c of clusters){
+          for(let m of c.members){
+            if(op.includes(m) || m.includes(op)){ c.members.push(op); added = true; break; }
+          }
+          if(added) break;
+        }
+        if(!added) clusters.push({members:[op]});
+      });
+
+
+      const colors = ["#ffe0e0","#e0ffe0","#e0e0ff","#fff0e0","#f0e0ff"];
+      const container = document.getElementById("clusterContainer");
+      container.innerHTML = "";
+      clusters.forEach((c,i) => {
+        const div = document.createElement("div");
+        div.className = "cluster";
+        div.style.backgroundColor = colors[i%colors.length];
+        div.textContent = c.members.join(" / ");
+        container.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
